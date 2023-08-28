@@ -1,35 +1,66 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import PlusIcon from "./Icons/PlusIcon";
-import { Column, Id } from "@/Types/Column";
-import {DndContext} from '@dnd-kit/core';
+import { Container, Id } from "@/Types/Column";
+import {DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
+import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import ColumnContainer from "./ColumnContainer";
+import Modal from "./Modal";
 
 const KandanBoard = () => {
 
-    const [cols, setCols] = useState<Column[]>([])
-    const [parent, setParent] = useState(null);
+    const [cols, setCols] = useState<Container[]>([])
+    const [openModal, setOpenModal] = useState(false);
+    const colsId = useMemo(()=> cols.map((item)=> item.id),[cols])
 
-    const createNewCol = () => {
+    const sensors = useSensors(useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      }
+    }))
+
+    const createNewCol = (enteredVal: string) => {
         const randomNumber = Math.floor(Math.random()*10000)
-        const colToAdd: Column = {
+        const colToAdd: Container = {
             id: randomNumber,
-            title: `Column ${cols.length + 1}`
+            title: enteredVal
         }
 
         setCols(prev => [...prev, colToAdd])
 
     }
 
-    const onDragStart = (event) => {
-        console.log(event)
+    const onDragStart = (event: DragStartEvent) => {
+        // console.log(event)
     }
 
-    const handleDragEnd = (event: { over: any; }) => {
-        const {over} = event
+    const onModalClose = (value: string) => {
+      value !== '' ?  createNewCol(value) : null
+      setOpenModal(false)
+    }
 
-        setParent(over ? over.id : null);
+    const handleDragEnd = (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over) return;
+  
+      const activeId = active.id;
+      const overId = over.id;
+  
+      if (activeId === overId) return;
+
+      const isActiveAColumn = active.data.current?.type === "Container";
+      if (!isActiveAColumn) return;
+  
+    
+      setCols((columns) => {
+        const activeColumnIndex = columns.findIndex((col) => col.id === activeId);
+  
+        const overColumnIndex = columns.findIndex((col) => col.id === overId);
+  
+        return arrayMove(cols, activeColumnIndex, overColumnIndex);
+      });
+        
     }
 
 
@@ -38,6 +69,16 @@ const KandanBoard = () => {
         const filteredCol = cols.filter( item => item.id !== colId)
         setCols(filteredCol)
     }
+
+    useEffect(() => {
+      if(openModal) {
+        document.body.classList.add('modal-open');
+
+      } else {
+        document.body.classList.remove('modal-open');
+
+      }
+    },[openModal])
 
 
     return (
@@ -48,7 +89,7 @@ const KandanBoard = () => {
          className='mr-20'
          >
          <button
-            onClick={createNewCol}
+            onClick={() => setOpenModal(true)}
             className="h-[60px] w-[350px] min-w-[350px] rounded-lg bg-mainBgColor p-4 border-2 ring-rose-400 hover:ring-2 border-colBgColor cursor-pointer flex items-center gap-1 mr-4"
           >
             <PlusIcon  />
@@ -56,15 +97,20 @@ const KandanBoard = () => {
           </button>
          </div>
         </div>
-      <DndContext onDragEnd={handleDragEnd} onDragStart={onDragStart}>
-        <div className="m-auto flex gap-4 overflow-x-auto">
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd} onDragStart={onDragStart}>
+        <div className="m-auto flex gap-4">
           <div className="flex gap-4">
+            <SortableContext items={colsId}>
             {cols.map((column) => (
               <ColumnContainer key={column.id} removeColumn={removeColumn} column={column} />
             ))}
+            </SortableContext>
           </div>
         </div>
         </DndContext>
+        {
+          openModal ? <Modal onClose={onModalClose} /> : null
+        }
       </div>
       
     );

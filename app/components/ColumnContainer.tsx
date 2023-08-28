@@ -1,31 +1,54 @@
 import { useState } from "react"
-import { Column, Id } from "@/Types/Column"
+import { Container, Id } from "@/Types/Column"
+import {useSortable} from '@dnd-kit/sortable';
 import DeleteIcon from "./Icons/DeleteIcon"
 import PlusIcon from "./Icons/PlusIcon"
-
+import {CSS} from '@dnd-kit/utilities';
+import TaskItem from "./TaskItem";
 interface Props  {
-   column: Column
+   column: Container
    removeColumn: (colId: Id) => void
 }
 
 
 const ColumnContainer = (props: Props) => {
 const {column, removeColumn} = props
-const [taskList, setTaskList] = useState<Column[]>([{id:1, title: 'eeee'}])
+const [taskList, setTaskList] = useState<Container[]>([{id:1, title: 'eeee'}])
 
+const {
+  attributes,
+  listeners,
+  setNodeRef,
+  transform,
+  transition,
+} = useSortable({
+  id: column.id,
+  data: {
+    type: 'Container',
+    column
+  }
+})
 
 const addItem = () => {
 
 }
 
+const style = {
+  transform: CSS.Transform.toString(transform),
+  transition,
+};
+
 
 return (
-    <div className="flex flex-col w-[350px] h-[500px] max-h-[500px] rounded-md bg-mainBgColor">
-  <div className="flex justify-between items-center bg-mainBgColor h-[60px] cursor-grab rounded-md rounded-b-none p-3 font-bold border-colBgColor border-4">
+    <div
+    ref={setNodeRef}
+    style={style}
+    className="flex flex-col w-[350px] h-[500px] max-h-[500px] rounded-md bg-mainBgColor">
+  <div
+ {...attributes}
+ {...listeners} 
+  className="flex justify-between items-center bg-mainBgColor h-[60px] cursor-grab rounded-md rounded-b-none p-3 font-bold border-colBgColor border-4">
     <div className="flex gap-2">
-      <div className="flex justify-center items-center px-2 py-1 text-sm rounded-full">
-        0
-      </div>
       {column.title}
     </div>
     <button
@@ -37,24 +60,7 @@ return (
   </div>
 
   {/* Content */}
-  <div className="flex-grow p-4 overflow-y-auto">
-    {taskList.length === 0 ? (
-      <div className="text-center text-gray-600">List is empty. Add an item.</div>
-    ) : (
-        taskList.map((item) => (
-        <div key={item.id} className="flex items-center mb-2">
-          <input
-            type="text"
-            value={item.title}
-            // onChange={(e) => {
-            //     setTaskList((prev) => [...prev])
-            // }}
-            className="flex-grow bg-colBgColor h-20 rounded px-2 py-1 hover:border-rose-400 outline-none transition border border-transparent focus:border-rose-400"
-          />
-        </div>
-      ))
-    )}
-  </div>
+<TaskItem />
 
   {/* Footer */}
   <div className="p-1 rounded-b-md">
