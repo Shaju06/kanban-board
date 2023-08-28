@@ -1,7 +1,7 @@
 export type Id = number | string
 
 
-export type Column = {
+export type Container = {
     id: Id
     title: string
 }
