@@ -8,6 +8,22 @@ body {
   background-color: black; 
 }
 
+/* Style the scrollbar track */
+.flex-grow::-webkit-scrollbar {
+  width: 2px;
+}
+
+/* Style the scrollbar thumb */
+.flex-grow::-webkit-scrollbar-thumb {
+  background-color: #eb696e;
+  border-radius: 4px;
+}
+
+/* Optionally, style the scrollbar track */
+.flex-grow::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+}
+
 .modal-open {
   overflow: hidden;
 }

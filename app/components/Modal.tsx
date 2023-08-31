@@ -36,7 +36,7 @@ const Modal: React.FC<ModalProps> = ({ onClose }) => {
             onChange={handleInputChange}
           />
         </div>
-        <div className="w-full px-1 py-1 bg-mainBgColor flex justify-center">
+        <div className="w-full px-2 py-2 bg-mainBgColor flex justify-center">
           <button className="w-full hover:bg-colBgColor text-white font-semibold py-2 px-2 rounded" onClick={() => handleModalWindow(false)}>
             Add Container
           </button>

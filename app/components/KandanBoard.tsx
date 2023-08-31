@@ -1,34 +1,38 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
+import { v4 as uuidv4 } from 'uuid';
+
 import PlusIcon from "./Icons/PlusIcon";
 import { Container, Id } from "@/Types/Column";
-import {DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
-import { SortableContext, arrayMove } from "@dnd-kit/sortable";
+import {DndContext, DragEndEvent, DragStartEvent, PointerSensor, KeyboardSensor, useSensor, useSensors} from '@dnd-kit/core';
+import { SortableContext, arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import ColumnContainer from "./ColumnContainer";
 import Modal from "./Modal";
 
 const KandanBoard = () => {
 
-    const [cols, setCols] = useState<Container[]>([])
+    const [containers, setContainers] = useState<Container[]>([])
     const [openModal, setOpenModal] = useState(false);
-    const colsId = useMemo(()=> cols.map((item)=> item.id),[cols])
+    const colsId = useMemo(()=> containers.map((item)=> item.id),[containers])
 
     const sensors = useSensors(useSensor(PointerSensor, {
       activationConstraint: {
         distance: 10,
       }
-    }))
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+    )
 
     const createNewCol = (enteredVal: string) => {
-        const randomNumber = Math.floor(Math.random()*10000)
-        const colToAdd: Container = {
-            id: randomNumber,
-            title: enteredVal
+        const containerToAdd: Container = {
+            id: uuidv4(),
+            title: enteredVal,
+            taskItems: []
         }
-
-        setCols(prev => [...prev, colToAdd])
-
+        setContainers(prev => [...prev, containerToAdd])
     }
 
     const onDragStart = (event: DragStartEvent) => {
@@ -43,7 +47,6 @@ const KandanBoard = () => {
     const handleDragEnd = (event: DragEndEvent) => {
       const { active, over } = event;
       if (!over) return;
-  
       const activeId = active.id;
       const overId = over.id;
   
@@ -53,31 +56,31 @@ const KandanBoard = () => {
       if (!isActiveAColumn) return;
   
     
-      setCols((columns) => {
+      setContainers((columns) => {
         const activeColumnIndex = columns.findIndex((col) => col.id === activeId);
   
         const overColumnIndex = columns.findIndex((col) => col.id === overId);
   
-        return arrayMove(cols, activeColumnIndex, overColumnIndex);
+        return arrayMove(containers, activeColumnIndex, overColumnIndex);
       });
         
     }
 
 
     const removeColumn = (colId: Id) => {
-        console.log(colId)
-        const filteredCol = cols.filter( item => item.id !== colId)
-        setCols(filteredCol)
+        const filteredCol = containers.filter( item => item.id !== colId)
+        setContainers(filteredCol)
     }
 
     useEffect(() => {
+
       if(openModal) {
         document.body.classList.add('modal-open');
 
       } else {
         document.body.classList.remove('modal-open');
-
       }
+
     },[openModal])
 
 
@@ -101,8 +104,8 @@ const KandanBoard = () => {
         <div className="m-auto flex gap-4">
           <div className="flex gap-4">
             <SortableContext items={colsId}>
-            {cols.map((column) => (
-              <ColumnContainer key={column.id} removeColumn={removeColumn} column={column} />
+            {containers.map((container) => (
+              <ColumnContainer key={container.id} removeColumn={removeColumn} setContainers={setContainers} container={container} />
             ))}
             </SortableContext>
           </div>

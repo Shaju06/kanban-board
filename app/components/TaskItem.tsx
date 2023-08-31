@@ -1,36 +1,110 @@
 import { Container } from '@/Types/Column';
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface TaskProps {
-    taskList: Container[]
-    setTaskList: 
+  container: Container
+  setContainers: any
+  taskId: string | number
 }
 
 const TaskItem = (props: TaskProps) => {
 
-    const {taskList, setTaskList} = props
+    const {container, taskId, setContainers} = props
+    const [taskTitle, setTaskTitle] = useState('')
 
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({
+      id: taskId,
+      data: {
+        type: 'Task',
+      },
+    });
+
+
+    function debounce<T extends (...args: any[]) => void>(func: T, timeout = 300) {
+      let timer: NodeJS.Timeout;
+    
+      return (...args: Parameters<T>) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          func.call(this, ...args);
+        }, timeout);
+      };
+    }
+
+   function setTask(arg: string) {
+  console.log(`Function called with argument: ${arg}`);
+  container.taskItems.map((item)=> {
+    if(item.id === taskId) {
+      return {
+        ...item,
+        title: arg
+      }
+    }
+    return item
+  })
+  setContainers((prev: Container[])=> {
+    console.log()
+
+   return  prev.map((cont: Container)=> {
+      if(container.id === cont.id) {
+     const subTask =  cont.taskItems.map((task)=> {
+          if(task.id === taskId) {
+            return {
+              ...task,
+              title: arg
+            }
+          }
+          return task
+        })
+
+        return {
+          ...cont,
+          subTask
+        }
+      }
+      return cont
+    })
+  })
+}
+
+useEffect(() => {
+  const fnc = debounce(setTask, 500)
+  fnc(taskTitle)
+},[taskTitle])
 
     return (
         <>
-    <div className="flex-grow p-4 overflow-y-auto">
-    {taskList.length === 0 ? (
-      <div className="text-center text-gray-600">List is empty. Add an item.</div>
-    ) : (
-        taskList.map((item) => (
-        <div key={item.id} className="flex items-center mb-2">
+        <div 
+        ref={setNodeRef}
+        style={{
+          transition,
+          transform: CSS.Translate.toString(transform),
+        }}
+        {...attributes}
+        {...listeners}
+        className="flex items-center mb-2">
           <input
             type="text"
-            value={item.title}
+            
+            value={taskTitle}
+            autoFocus
             onChange={(e) => {
-                setTaskList((prev) => [...prev])
+              setContainers
+              setTaskTitle(e.target.value)
+              
             }}
             className="flex-grow bg-colBgColor h-20 rounded px-2 py-1 hover:border-rose-400 outline-none transition border border-transparent focus:border-rose-400"
           />
         </div>
-      ))
-    )}
-  </div>
         </>
     );
 }
