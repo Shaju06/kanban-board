@@ -6,7 +6,7 @@ import PlusIcon from "./Icons/PlusIcon"
 import {CSS} from '@dnd-kit/utilities';
 import TaskItem from "./TaskItem";
 import { v4 as uuidv4 } from 'uuid';
-import { SortableContext, arrayMove } from "@dnd-kit/sortable";
+import { SortableContext,verticalListSortingStrategy,  arrayMove } from "@dnd-kit/sortable";
 interface Props  {
   container: Container
    removeColumn: (colId: Id) => void
@@ -71,24 +71,25 @@ return (
   </div>
 
   {/* Content */}
-  <div className="flex-grow p-4 overflow-y-auto">
+  <div className="flex-grow p-4 overflow-y-auto overflow-x-hidden">
+  <SortableContext items={tasksId} strategy={verticalListSortingStrategy} id={`${container.id}-tasks`} >
     {
       container.taskItems.length === 0 ?
       
       <div className="text-center text-gray-600">Empty task</div> : (
-        container.taskItems.map((task, index) => (
-          <SortableContext key={task.id}  items={tasksId}>
+       
+      container.taskItems.map((task, index) => (
           <TaskItem 
+          key={task.id}
           taskId={task.id} 
           container={container} 
           setContainers={setContainers} 
           />
-          </SortableContext>
         ))
       )
     }
+      </SortableContext>   
   </div>
-
 
   {/* Footer */}
   <div className="p-1 rounded-b-md">
