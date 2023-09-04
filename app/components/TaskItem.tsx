@@ -81,8 +81,7 @@ useEffect(() => {
   fnc(taskTitle)
 },[taskTitle])
 
-    return (
-        <>
+    return (  
         <div 
         ref={setNodeRef}
         style={{
@@ -94,18 +93,16 @@ useEffect(() => {
         className="flex items-center mb-2">
           <input
             type="text"
-            
             value={taskTitle}
             autoFocus
             onChange={(e) => {
-              setContainers
+              // setContainers
               setTaskTitle(e.target.value)
               
             }}
             className="flex-grow bg-colBgColor h-20 rounded px-2 py-1 hover:border-rose-400 outline-none transition border border-transparent focus:border-rose-400"
           />
         </div>
-        </>
     );
 }
 
